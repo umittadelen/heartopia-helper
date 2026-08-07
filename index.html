@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brushstroke Guide</title>
+<style>
+  :root{
+    --bg:#f5e4ce;
+    --panel:#fff8ef;
+    --ink:#432e4b;
+    --accent:#cf354d;
+    --accent2:#058781;
+    --line:#d8c9b0;
+    --muted:#8b7d76;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Trebuchet MS', 'Segoe UI', sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  header{
+    padding:18px 20px 10px;
+    text-align:center;
+  }
+  header h1{
+    margin:0;
+    font-size:1.5rem;
+    letter-spacing:0.02em;
+  }
+  header p{
+    margin:4px 0 0;
+    color:var(--muted);
+    font-size:0.85rem;
+  }
+  .layout{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    padding:16px;
+    max-width:1400px;
+    margin:0 auto;
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px;
+  }
+  .controls{
+    flex:0 0 280px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .controls h2{
+    font-size:0.95rem;
+    margin:0 0 2px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:6px;
+  }
+  label{
+    font-size:0.8rem;
+    color:var(--muted);
+    display:block;
+    margin-bottom:3px;
+  }
+  input[type=file]{width:100%;font-size:0.8rem;}
+  input[type=number]{
+    width:100%;
+    padding:5px 6px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-size:0.85rem;
+  }
+  select{
+    width:100%;
+    padding:5px 6px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-size:0.85rem;
+    background:#fff;
+  }
+  .row{display:flex;gap:8px;}
+  .row > div{flex:1;}
+  .presets{display:flex;flex-wrap:wrap;gap:6px;}
+  .presets button{
+    flex:1 1 auto;
+    padding:6px 4px;
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:0.75rem;
+  }
+  .presets button:hover{border-color:var(--accent);}
+  button.primary{
+    padding:9px;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    font-size:0.9rem;
+    cursor:pointer;
+    font-weight:600;
+  }
+  button.primary:hover{opacity:0.9;}
+  button.secondary{
+    padding:8px;
+    background:#fff;
+    color:var(--ink);
+    border:1px solid var(--line);
+    border-radius:8px;
+    font-size:0.82rem;
+    cursor:pointer;
+  }
+  button.secondary:hover{border-color:var(--accent2);}
+  button:disabled{opacity:0.5;cursor:not-allowed;}
+  .zoom-val{font-size:0.75rem;color:var(--muted);}
+  .canvas-area{
+    flex:1 1 500px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    align-items:center;
+  }
+  .canvas-scroll{
+    width:100%;
+    overflow:auto;
+    max-height:72vh;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:repeating-conic-gradient(#eee 0% 25%, #f7f7f7 0% 50%) 0 0/16px 16px;
+  }
+  canvas#out{
+    display:block;
+    image-rendering:pixelated;
+  }
+  .status{font-size:0.8rem;color:var(--muted);text-align:center;}
+  .legend-panel{
+    flex:0 0 260px;
+    max-height:80vh;
+    overflow-y:auto;
+  }
+  .legend-panel h2{
+    font-size:0.95rem;
+    margin:0 0 8px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:6px;
+  }
+  .legend-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:5px 6px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:0.78rem;
+  }
+  .legend-item:hover{background:#eee0cd;}
+  .legend-item.active{background:#ecd6c2;outline:1px solid var(--accent);}
+  .swatch{
+    width:18px;height:18px;
+    border-radius:4px;
+    border:1px solid rgba(0,0,0,0.2);
+    flex:0 0 auto;
+  }
+  .legend-item .cnt{margin-left:auto;color:var(--muted);}
+  .legend-item .done{color:var(--accent2);}
+  .clear-step{
+    font-size:0.75rem;
+    text-align:center;
+    color:var(--accent);
+    cursor:pointer;
+    margin-top:6px;
+    padding:8px;
+  }
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:0.72rem;
+    padding:10px 20px 24px;
+  }
+  canvas#out{ touch-action:manipulation; }
+  .canvas-scroll{ -webkit-overflow-scrolling:touch; }
+
+  /* ---- mobile ---- */
+  @media (max-width: 900px){
+    header{padding:14px 14px 8px;}
+    header h1{font-size:1.25rem;}
+    .layout{padding:10px;gap:10px;}
+    .controls, .legend-panel, .canvas-area{flex:1 1 100%;}
+    .legend-panel{order:3;max-height:40vh;}
+    .canvas-area{order:2;}
+    .controls{order:1;}
+    .canvas-scroll{max-height:52vh;}
+    input[type=number], select{padding:9px 8px;font-size:0.95rem;}
+    input[type=range]{height:28px;}
+    button.primary{padding:13px;font-size:1rem;}
+    button.secondary{padding:12px;font-size:0.9rem;}
+    .presets button{padding:10px 6px;font-size:0.8rem;}
+    .legend-item{padding:9px 8px;font-size:0.85rem;}
+    .swatch{width:22px;height:22px;}
+    input[type=file]{font-size:0.9rem;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Brushstroke Guide</h1>
+  <p>Photo → Heartopia pixel guide, matched to the in-game palette. Everything runs on your device.</p>
+</header>
+
+<div class="layout">
+
+  <div class="panel controls">
+    <h2>1. Image & Size</h2>
+    <div>
+      <label>Upload photo</label>
+      <input type="file" id="fileInput" accept="image/*">
+    </div>
+    <div class="row">
+      <div>
+        <label>Width (px)</label>
+        <input type="number" id="canvasW" value="32" min="4" max="200">
+      </div>
+      <div>
+        <label>Height (px)</label>
+        <input type="number" id="canvasH" value="32" min="4" max="200">
+      </div>
+    </div>
+    <div class="presets">
+      <button data-w="32" data-h="32">32×32 clothing</button>
+      <button data-w="64" data-h="64">64×64 furniture</button>
+      <button data-w="150" data-h="150">150×150 painting</button>
+    </div>
+
+    <h2>2. Conversion</h2>
+    <div>
+      <label>Dithering</label>
+      <select id="ditherMode">
+        <option value="none">None (flat, easiest to paint)</option>
+        <option value="bayer" selected>Ordered / Bayer 4×4</option>
+        <option value="fs">Floyd–Steinberg (best gradients)</option>
+      </select>
+    </div>
+    <div>
+      <label>Dither strength <span id="strengthVal" class="zoom-val"></span></label>
+      <input type="range" id="strength" min="0" max="64" value="24">
+    </div>
+    <button class="primary" id="renderBtn">Generate guide</button>
+
+    <h2>3. View</h2>
+    <div>
+      <label>Zoom <span id="zoomVal" class="zoom-val"></span></label>
+      <input type="range" id="zoom" min="3" max="28" value="12">
+    </div>
+    <button class="secondary" id="downloadBtn" disabled>Download guide PNG</button>
+    <button class="secondary" id="exportPlanBtn" disabled>Export paint plan (.json)</button>
+    <div class="status" id="status">Upload a photo to begin.</div>
+  </div>
+
+  <div class="panel canvas-area">
+    <div class="canvas-scroll">
+      <canvas id="out" width="1" height="1"></canvas>
+    </div>
+    <div class="status" id="stepStatus"></div>
+  </div>
+
+  <div class="panel legend-panel">
+    <h2>Colors used</h2>
+    <div id="legend"></div>
+    <div class="clear-step" id="clearStep" style="display:none;">✕ exit color focus</div>
+  </div>
+
+</div>
+
+<footer>Palette is Heartopia's in-game colors, pasted in by hand. Click a color in the list to focus it, click focused pixels on the canvas to mark them painted.</footer>
+
+<script>
+const PALETTE_HEX = [
+"#051616","#414545","#808282","#bebfbf","#feffff",
+"#cf354d","#ee6f72","#a6263d","#f5aca6","#c98483",
+"#a35d5e","#69313b","#e7d5d5","#c0acab","#755e5e",
+"#e95e2b","#f98358","#ab4226","#feba9f","#d9937c",
+"#af6c58","#753b31","#e9d5d0","#c1aca6","#755e59",
+"#f49e16","#feae3b","#b16f16","#fece92","#daa76d",
+"#b3814b","#795126","#f5e4ce","#cdbca9","#806f5e",
+"#edca16","#f9d838","#b39416","#fae791","#d3be6f",
+"#ab954b","#756326","#eee7c7","#c6bfa2","#787259",
+"#a8bc16","#b6c931","#758616","#d8df93","#adb76d",
+"#85914b","#535e2b","#e6e9c7","#bcc2a3","#6e745d",
+"#05a25d","#41b97b","#057447","#9cdaad","#76b28b",
+"#4f8969","#245640","#c3e0cc","#9db7a6","#53695d",
+"#058781","#05aba0","#056966","#7ecdc2","#55a49c",
+"#2b7e78","#054b4b","#bee0da","#98b7b2","#4e6b66",
+"#05729c","#0599ba","#055878","#79bbca","#5193a5",
+"#246d7f","#05495b","#c6dde2","#9eb5ba","#4f676f",
+"#055ea6","#2b83c1","#054782","#83a8c9","#5d80a1",
+"#365b7f","#193b56","#c1cdd5","#9ba6b0","#4c5967",
+"#534da1","#7577bd","#3e387e","#a2a0c7","#787aa1",
+"#55567e","#333555","#c9cad5","#a2a3b0","#565869",
+"#813d8b","#a167a9","#602b6c","#b89bb9","#907395",
+"#6c4d73","#432e4b","#cfc9d1","#aba1ac","#605665",
+"#ad356f","#cf6b8f","#862658","#d9a1b4","#b47a8c",
+"#8b5367","#60354b","#e4d5da","#bcadb1","#725e66"
+];
+
+function hexToRgb(h){
+  h = h.replace('#','');
+  return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+}
+const PALETTE = PALETTE_HEX.map(hexToRgb);
+
+// weighted "redmean" perceptual distance
+function colorDist(r1,g1,b1,r2,g2,b2){
+  const rmean = (r1+r2)/2;
+  const dr = r1-r2, dg = g1-g2, db = b1-b2;
+  return (2 + rmean/256)*dr*dr + 4*dg*dg + (2 + (255-rmean)/256)*db*db;
+}
+
+function nearestPaletteIndex(r,g,b){
+  let best = 0, bestD = Infinity;
+  for(let i=0;i<PALETTE.length;i++){
+    const p = PALETTE[i];
+    const d = colorDist(r,g,b,p[0],p[1],p[2]);
+    if(d < bestD){ bestD = d; best = i; }
+  }
+  return best;
+}
+
+const BAYER4 = [
+  [0,8,2,10],
+  [12,4,14,6],
+  [3,11,1,9],
+  [15,7,13,5]
+];
+
+let sourceImg = null;
+let gridW = 32, gridH = 32;
+let indexGrid = null; // Int16Array of palette indices, length gridW*gridH
+let paintedSet = new Set(); // "x,y" marked done
+let focusedIndex = -1;
+
+const fileInput = document.getElementById('fileInput');
+const canvasWInp = document.getElementById('canvasW');
+const canvasHInp = document.getElementById('canvasH');
+const ditherModeSel = document.getElementById('ditherMode');
+const strengthInp = document.getElementById('strength');
+const strengthVal = document.getElementById('strengthVal');
+const zoomInp = document.getElementById('zoom');
+const zoomVal = document.getElementById('zoomVal');
+const renderBtn = document.getElementById('renderBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const exportPlanBtn = document.getElementById('exportPlanBtn');
+const statusEl = document.getElementById('status');
+const stepStatusEl = document.getElementById('stepStatus');
+const legendEl = document.getElementById('legend');
+const clearStepEl = document.getElementById('clearStep');
+const outCanvas = document.getElementById('out');
+const ctx = outCanvas.getContext('2d');
+
+document.querySelectorAll('.presets button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    canvasWInp.value = btn.dataset.w;
+    canvasHInp.value = btn.dataset.h;
+  });
+});
+
+strengthInp.addEventListener('input', ()=> strengthVal.textContent = strengthInp.value);
+strengthVal.textContent = strengthInp.value;
+zoomInp.addEventListener('input', ()=>{ zoomVal.textContent = zoomInp.value+'px/cell'; draw(); });
+zoomVal.textContent = zoomInp.value+'px/cell';
+
+fileInput.addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const img = new Image();
+  img.onload = ()=>{
+    sourceImg = img;
+    statusEl.textContent = 'Photo loaded. Click "Generate guide".';
+  };
+  img.src = URL.createObjectURL(file);
+});
+
+renderBtn.addEventListener('click', generate);
+
+function generate(){
+  if(!sourceImg){ statusEl.textContent = 'Upload a photo first.'; return; }
+  gridW = Math.max(4, Math.min(200, parseInt(canvasWInp.value)||32));
+  gridH = Math.max(4, Math.min(200, parseInt(canvasHInp.value)||32));
+
+  const off = document.createElement('canvas');
+  off.width = gridW; off.height = gridH;
+  const octx = off.getContext('2d');
+  octx.imageSmoothingEnabled = true;
+  octx.imageSmoothingQuality = 'high';
+  // cover-fit crop to target aspect ratio
+  const sRatio = sourceImg.width/sourceImg.height;
+  const tRatio = gridW/gridH;
+  let sx=0, sy=0, sw=sourceImg.width, sh=sourceImg.height;
+  if(sRatio > tRatio){ sw = sh*tRatio; sx = (sourceImg.width-sw)/2; }
+  else { sh = sw/tRatio; sy = (sourceImg.height-sh)/2; }
+  octx.drawImage(sourceImg, sx, sy, sw, sh, 0, 0, gridW, gridH);
+
+  const imgData = octx.getImageData(0,0,gridW,gridH);
+  const data = imgData.data;
+  const mode = ditherModeSel.value;
+  const strength = parseInt(strengthInp.value);
+
+  indexGrid = new Int16Array(gridW*gridH);
+
+  if(mode === 'fs'){
+    // working float buffer for error diffusion
+    const buf = new Float32Array(gridW*gridH*3);
+    for(let i=0;i<gridW*gridH;i++){
+      buf[i*3] = data[i*4]; buf[i*3+1] = data[i*4+1]; buf[i*3+2] = data[i*4+2];
+    }
+    for(let y=0;y<gridH;y++){
+      for(let x=0;x<gridW;x++){
+        const i = y*gridW+x;
+        let r = Math.max(0,Math.min(255,buf[i*3]));
+        let g = Math.max(0,Math.min(255,buf[i*3+1]));
+        let b = Math.max(0,Math.min(255,buf[i*3+2]));
+        const pi = nearestPaletteIndex(r,g,b);
+        indexGrid[i] = pi;
+        const p = PALETTE[pi];
+        const er = r-p[0], eg = g-p[1], eb = b-p[2];
+        const push=(xx,yy,f)=>{
+          if(xx<0||xx>=gridW||yy<0||yy>=gridH) return;
+          const j=(yy*gridW+xx)*3;
+          buf[j]   += er*f;
+          buf[j+1] += eg*f;
+          buf[j+2] += eb*f;
+        };
+        push(x+1,y,7/16); push(x-1,y+1,3/16); push(x,y+1,5/16); push(x+1,y+1,1/16);
+      }
+    }
+  } else {
+    for(let y=0;y<gridH;y++){
+      for(let x=0;x<gridW;x++){
+        const i = y*gridW+x;
+        let r = data[i*4], g = data[i*4+1], b = data[i*4+2];
+        if(mode === 'bayer' && strength>0){
+          const t = (BAYER4[y%4][x%4]/16 - 0.5) * strength;
+          r = Math.max(0,Math.min(255,r+t));
+          g = Math.max(0,Math.min(255,g+t));
+          b = Math.max(0,Math.min(255,b+t));
+        }
+        indexGrid[i] = nearestPaletteIndex(r,g,b);
+      }
+    }
+  }
+
+  paintedSet.clear();
+  focusedIndex = -1;
+  buildLegend();
+  downloadBtn.disabled = false;
+  exportPlanBtn.disabled = false;
+  statusEl.textContent = `${gridW}×${gridH} guide ready — ${legendCounts.length} colors used.`;
+  draw();
+}
+
+let legendCounts = [];
+
+function buildLegend(){
+  const counts = new Map();
+  for(let i=0;i<indexGrid.length;i++){
+    const pi = indexGrid[i];
+    counts.set(pi, (counts.get(pi)||0)+1);
+  }
+  legendCounts = [...counts.entries()].sort((a,b)=>b[1]-a[1]);
+  legendEl.innerHTML = '';
+  legendCounts.forEach(([pi,count])=>{
+    const div = document.createElement('div');
+    div.className = 'legend-item';
+    div.dataset.pi = pi;
+    div.innerHTML = `<span class="swatch" style="background:${PALETTE_HEX[pi]}"></span>
+      <span>${PALETTE_HEX[pi]}</span><span class="cnt">${count}</span>`;
+    div.addEventListener('click', ()=>{
+      focusedIndex = (focusedIndex===pi) ? -1 : pi;
+      updateLegendActive();
+      updateStepStatus();
+      draw();
+    });
+    legendEl.appendChild(div);
+  });
+  updateLegendActive();
+  updateStepStatus();
+}
+
+function updateLegendActive(){
+  [...legendEl.children].forEach(el=>{
+    el.classList.toggle('active', parseInt(el.dataset.pi)===focusedIndex);
+  });
+  clearStepEl.style.display = focusedIndex>=0 ? 'block' : 'none';
+}
+
+clearStepEl.addEventListener('click', ()=>{
+  focusedIndex = -1;
+  updateLegendActive();
+  updateStepStatus();
+  draw();
+});
+
+function updateStepStatus(){
+  if(focusedIndex<0){ stepStatusEl.textContent=''; return; }
+  let total=0, done=0;
+  for(let y=0;y<gridH;y++) for(let x=0;x<gridW;x++){
+    if(indexGrid[y*gridW+x]===focusedIndex){
+      total++;
+      if(paintedSet.has(x+','+y)) done++;
+    }
+  }
+  stepStatusEl.textContent = `Focused on ${PALETTE_HEX[focusedIndex]} — ${done}/${total} pixels marked painted. Click cells on the canvas to mark them.`;
+}
+
+function draw(){
+  if(!indexGrid) return;
+  const cell = parseInt(zoomInp.value);
+  outCanvas.width = gridW*cell;
+  outCanvas.height = gridH*cell;
+  for(let y=0;y<gridH;y++){
+    for(let x=0;x<gridW;x++){
+      const pi = indexGrid[y*gridW+x];
+      let color = PALETTE_HEX[pi];
+      let dim = false;
+      if(focusedIndex>=0 && pi!==focusedIndex) dim = true;
+      ctx.fillStyle = color;
+      ctx.globalAlpha = dim ? 0.18 : 1;
+      ctx.fillRect(x*cell, y*cell, cell, cell);
+      ctx.globalAlpha = 1;
+      if(focusedIndex>=0 && pi===focusedIndex && paintedSet.has(x+','+y)){
+        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+        ctx.lineWidth = Math.max(1,cell*0.12);
+        ctx.beginPath();
+        ctx.moveTo(x*cell+cell*0.2, y*cell+cell*0.55);
+        ctx.lineTo(x*cell+cell*0.42, y*cell+cell*0.78);
+        ctx.lineTo(x*cell+cell*0.8, y*cell+cell*0.25);
+        ctx.stroke();
+      }
+    }
+  }
+  // grid lines
+  ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+  ctx.lineWidth = 1;
+  for(let x=0;x<=gridW;x++){
+    ctx.beginPath(); ctx.moveTo(x*cell,0); ctx.lineTo(x*cell,gridH*cell); ctx.stroke();
+  }
+  for(let y=0;y<=gridH;y++){
+    ctx.beginPath(); ctx.moveTo(0,y*cell); ctx.lineTo(gridW*cell,y*cell); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+  ctx.lineWidth = Math.max(1,cell*0.06);
+  for(let x=0;x<=gridW;x+=5){
+    ctx.beginPath(); ctx.moveTo(x*cell,0); ctx.lineTo(x*cell,gridH*cell); ctx.stroke();
+  }
+  for(let y=0;y<=gridH;y+=5){
+    ctx.beginPath(); ctx.moveTo(0,y*cell); ctx.lineTo(gridW*cell,y*cell); ctx.stroke();
+  }
+}
+
+outCanvas.addEventListener('click', (e)=>{
+  if(focusedIndex<0 || !indexGrid) return;
+  const rect = outCanvas.getBoundingClientRect();
+  const cell = parseInt(zoomInp.value);
+  const scaleX = outCanvas.width/rect.width, scaleY = outCanvas.height/rect.height;
+  const px = (e.clientX-rect.left)*scaleX;
+  const py = (e.clientY-rect.top)*scaleY;
+  const x = Math.floor(px/cell), y = Math.floor(py/cell);
+  if(x<0||x>=gridW||y<0||y>=gridH) return;
+  if(indexGrid[y*gridW+x]!==focusedIndex) return;
+  const key = x+','+y;
+  if(paintedSet.has(key)) paintedSet.delete(key); else paintedSet.add(key);
+  updateStepStatus();
+  draw();
+});
+
+downloadBtn.addEventListener('click', ()=>{
+  const link = document.createElement('a');
+  link.download = 'heartopia-paint-guide.png';
+  link.href = outCanvas.toDataURL('image/png');
+  link.click();
+});
+
+exportPlanBtn.addEventListener('click', ()=>{
+  const colors = legendCounts.map(([pi,count])=>{
+    const pixels = [];
+    for(let y=0;y<gridH;y++) for(let x=0;x<gridW;x++){
+      if(indexGrid[y*gridW+x]===pi) pixels.push([x,y]);
+    }
+    return { hex: PALETTE_HEX[pi], count, pixels };
+  });
+  const plan = { canvas: { width: gridW, height: gridH }, colors };
+  const blob = new Blob([JSON.stringify(plan)], {type:'application/json'});
+  const link = document.createElement('a');
+  link.download = 'heartopia_paint_plan.json';
+  link.href = URL.createObjectURL(blob);
+  link.click();
+});
+</script>
+</body>
+</html>
