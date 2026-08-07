@@ -43,6 +43,7 @@
     padding:16px;
     max-width:1400px;
     margin:0 auto;
+    min-width:0;
   }
   .panel{
     background:var(--panel);
@@ -55,6 +56,7 @@
     display:flex;
     flex-direction:column;
     gap:12px;
+    min-width:0;
   }
   .controls h2{
     font-size:0.95rem;
@@ -126,14 +128,17 @@
     flex-direction:column;
     gap:10px;
     align-items:center;
+    min-width:0;
   }
   .canvas-scroll{
     width:100%;
+    min-width:0;
     overflow:auto;
     max-height:72vh;
     border:1px solid var(--line);
     border-radius:8px;
     background:repeating-conic-gradient(#eee 0% 25%, #f7f7f7 0% 50%) 0 0/16px 16px;
+    overscroll-behavior:contain;
   }
   canvas#out{
     display:block;
@@ -144,6 +149,7 @@
     flex:0 0 260px;
     max-height:80vh;
     overflow-y:auto;
+    min-width:0;
   }
   .legend-panel h2{
     font-size:0.95rem;
