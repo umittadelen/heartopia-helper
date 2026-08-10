@@ -15,12 +15,14 @@
     --muted:#8b7d76;
   }
   *{box-sizing:border-box;}
+  html{ touch-action:manipulation; } /* stops iOS double-tap-to-zoom site-wide */
   body{
     margin:0;
     font-family:'Trebuchet MS', 'Segoe UI', sans-serif;
     background:var(--bg);
     color:var(--ink);
     min-height:100vh;
+    touch-action:manipulation;
   }
   header{
     padding:18px 20px 10px;
@@ -176,6 +178,59 @@
   }
   .legend-item .cnt{margin-left:auto;color:var(--muted);}
   .legend-item .done{color:var(--accent2);}
+
+  .family-panel{
+    flex:0 0 260px;
+    min-width:0;
+  }
+  .family-panel h2{
+    font-size:0.95rem;
+    margin:0 0 8px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:6px;
+  }
+  .family-headers{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    scroll-snap-type:x proximity;
+    padding:2px 2px 8px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .family-headers .fh-swatch{
+    flex:0 0 34px;
+    width:34px;height:34px;
+    border-radius:8px;
+    border:2px solid transparent;
+    cursor:pointer;
+    scroll-snap-align:start;
+  }
+  .family-headers .fh-swatch.active{
+    border-color:var(--ink);
+    transform:scale(1.08);
+  }
+  .family-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    grid-auto-rows:1fr;
+    gap:6px;
+  }
+  .family-grid .fg-cell{
+    aspect-ratio:1.6;
+    border-radius:6px;
+    border:1px solid rgba(0,0,0,0.15);
+    position:relative;
+  }
+  .family-grid .fg-cell.empty{
+    background:repeating-linear-gradient(45deg,#eee,#eee 4px,#f7f7f7 4px,#f7f7f7 8px);
+    border-style:dashed;
+  }
+  .family-grid .fg-cell.match{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
+  #familyEmpty{padding:10px 0;}
+
   .clear-step{
     font-size:0.75rem;
     text-align:center;
@@ -207,6 +262,29 @@
     color:var(--muted);
     line-height:1.3;
   }
+  .step-jump{
+    display:flex;
+    gap:6px;
+    margin-top:6px;
+  }
+  .step-jump input{
+    width:70px;
+    padding:8px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-size:0.85rem;
+  }
+  .step-jump button{
+    flex:1;
+    padding:8px;
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:0.82rem;
+    font-weight:600;
+  }
+  .step-jump button:hover{border-color:var(--accent2);}
   footer{
     text-align:center;
     color:var(--muted);
@@ -216,13 +294,20 @@
   canvas#out{ touch-action:manipulation; }
   .canvas-scroll{ -webkit-overflow-scrolling:touch; }
 
-  /* ---- mobile ---- */
-  @media (max-width: 900px){
+  /* ---- tablet / smaller desktop window: let side panels share a row ---- */
+  @media (min-width: 901px) and (max-width: 1200px){
+    .controls{flex:0 0 240px;}
+    .legend-panel, .family-panel{flex:1 1 220px;}
+  }
+
+  /* ---- phone / narrow tablet, portrait ---- */
+  @media (max-width: 900px) and (orientation: portrait){
     header{padding:14px 14px 8px;}
     header h1{font-size:1.25rem;}
     .layout{padding:10px;gap:10px;}
-    .controls, .legend-panel, .canvas-area{flex:1 1 100%;}
+    .controls, .legend-panel, .canvas-area, .family-panel{flex:1 1 100%;}
     .legend-panel{order:3;max-height:40vh;}
+    .family-panel{order:4;}
     .canvas-area{order:2;}
     .controls{order:1;}
     .canvas-scroll{max-height:52vh;}
@@ -232,9 +317,64 @@
     button.secondary{padding:12px;font-size:0.9rem;}
     .presets button{padding:10px 6px;font-size:0.8rem;}
     .step-nav button{padding:12px 10px;font-size:1rem;}
+    .step-jump input{padding:11px 8px;font-size:0.95rem;width:60px;}
+    .step-jump button{padding:11px;font-size:0.9rem;}
     .legend-item{padding:9px 8px;font-size:0.85rem;}
     .swatch{width:22px;height:22px;}
     input[type=file]{font-size:0.9rem;}
+    .family-headers .fh-swatch{flex:0 0 40px;width:40px;height:40px;}
+  }
+
+  /* ---- phone, landscape: wide but short, needs vertical space back ---- */
+  @media (max-width: 900px) and (orientation: landscape),
+         (max-height: 480px) and (orientation: landscape){
+    body{overflow-x:hidden;}
+    header{padding:6px 14px 4px;}
+    header h1{font-size:1.05rem;}
+    header p{display:none;}
+    .layout{
+      padding:8px;
+      gap:8px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .controls{
+      flex:0 0 200px;
+      max-height:92vh;
+      overflow-y:auto;
+      order:1;
+      padding:10px;
+      gap:8px;
+    }
+    .controls h2{font-size:0.82rem;margin:2px 0 0;padding-bottom:4px;}
+    .canvas-area{
+      flex:1 1 320px;
+      order:2;
+      max-height:92vh;
+      gap:6px;
+    }
+    .canvas-scroll{max-height:66vh;}
+    .legend-panel, .family-panel{
+      flex:1 1 46%;
+      order:3;
+      max-height:26vh;
+      overflow-y:auto;
+      padding:8px 10px;
+    }
+    .family-panel{order:4;}
+    .family-panel h2, .legend-panel h2{font-size:0.82rem;margin:0 0 6px;padding-bottom:4px;}
+    input[type=number], select{padding:6px;font-size:0.82rem;}
+    label{font-size:0.72rem;margin-bottom:2px;}
+    button.primary{padding:9px;font-size:0.85rem;}
+    button.secondary{padding:8px;font-size:0.78rem;}
+    .step-nav button{padding:8px;font-size:0.85rem;}
+    .step-jump input{padding:7px;font-size:0.82rem;width:50px;}
+    .step-jump button{padding:7px;font-size:0.78rem;}
+    .legend-item{padding:6px;font-size:0.75rem;}
+    .swatch{width:16px;height:16px;}
+    .family-headers .fh-swatch{flex:0 0 28px;width:28px;height:28px;}
+    .family-grid{gap:4px;}
+    .presets button, input[type=range]{padding:6px;}
   }
 </style>
 </head>
@@ -256,18 +396,18 @@
     <div class="row">
       <div>
         <label>Width (px)</label>
-        <input type="number" id="canvasW" value="32" min="4" max="200">
+        <input type="number" id="canvasW" value="30" min="4" max="200">
       </div>
       <div>
         <label>Height (px)</label>
-        <input type="number" id="canvasH" value="32" min="4" max="200">
+        <input type="number" id="canvasH" value="18" min="4" max="200">
       </div>
     </div>
-    <div class="presets">
-      <button data-w="32" data-h="32">32×32 clothing</button>
-      <button data-w="64" data-h="64">64×64 furniture</button>
-      <button data-w="150" data-h="150">150×150 painting</button>
+    <div>
+      <label>Preset (from community-counted canvas sizes)</label>
+      <select id="presetSelect"></select>
     </div>
+    <div class="status" id="presetNote" style="text-align:left;"></div>
 
     <h2>2. Conversion</h2>
     <div>
@@ -306,6 +446,10 @@
       <div class="step-label" id="stepLabel">–</div>
       <button class="secondary" id="nextStep">Next +</button>
     </div>
+    <div class="step-jump" id="stepJump" style="display:none;">
+      <input type="number" id="jumpInput" min="1" placeholder="#" inputmode="numeric">
+      <button class="secondary" id="jumpBtn">Go to #</button>
+    </div>
 
     <div class="status" id="status">Upload a photo to begin.</div>
   </div>
@@ -321,6 +465,13 @@
     <h2>Colors used</h2>
     <div id="legend"></div>
     <div class="clear-step" id="clearStep" style="display:none;">✕ exit color focus</div>
+  </div>
+
+  <div class="panel family-panel">
+    <h2>Color family</h2>
+    <div class="family-headers" id="familyHeaders"></div>
+    <div class="family-grid" id="familyGrid"></div>
+    <div class="status" id="familyEmpty">Pick a color from the list to see its shade family here.</div>
   </div>
 
 </div>
@@ -379,6 +530,91 @@ function nearestPaletteIndex(r,g,b){
   return best;
 }
 
+// Hue-family breakdown pasted in by hand: 12 base hues, each with its
+// shade group (up to 5 rows x 2 cols). Independent of PALETTE_HEX above —
+// this is a browsing/reference aid, not what the image gets quantized to.
+const PALETTE_GROUPS = [
+  { header:'#1B1613', rows:[['#060B0A','#3D4241'],['#7F8483','#B7B9B8'],['#FFFFFF',null]] },
+  { header:'#D36466', rows:[['#D36466','#EF7E7A'],['#AE2A3A','#F1B4B1'],['#C18B86','#A16161'],['#65222D','#EFE2E2'],['#CBC1C1','#7D6E6E']] },
+  { header:'#D77B51', rows:[['#D77B51','#F99A5F'],['#B45420','#FAC89E'],['#C89D78','#A6744F'],['#73361D','#F3E3D4'],['#CDBFB2','#7E7265']] },
+  { header:'#DA9C3C', rows:[['#DA9C3C','#FDBF4F'],['#B47717','#FED696'],['#CDAA6D','#AE8A48'],['#754F1C','#F5EAD2'],['#CFC6B1','#7D7762']] },
+  { header:'#DBBF33', rows:[['#DBBF33','#F1DE59'],['#B7A31D','#F5E99B'],['#C7BC70','#B1A84D'],['#726520','#F0F0CF'],['#CFCCAF','#797961']] },
+  { header:'#A2B630', rows:[['#A2B630','#B7D15B'],['#7D981D','#D2E495'],['#A8C274','#809C4F'],['#4C6022','#E7F0D0'],['#C9D6AF','#6B7960']] },
+  { header:'#0F9E52', rows:[['#0F9E52','#51B377'],['#0E8043','#9DD8B0'],['#75B48E','#528A69'],['#1D5435','#CFE9D9'],['#ACCDB9','#536E5F']] },
+  { header:'#0E8982', rows:[['#0E8982','#19B4A7'],['#0E6D67','#8ACBC4'],['#5EA59E','#377D78'],['#0A4D49','#C8EAE7'],['#A4C3C1','#4F6D6A']] },
+  { header:'#0D7EA9', rows:[['#0D7EA9','#1BA4C8'],['#116389','#87C3D9'],['#5D9CB6','#35768D'],['#0D475A','#C7E3EB'],['#A2BDC7','#4F6772']] },
+  { header:'#0E66B1', rows:[['#0E66B1','#408FCD'],['#0A4D8F','#8CB5DA'],['#628AB6','#3E6794'],['#1C3959','#C9DBE7'],['#A1B2C2','#4A5B70']] },
+  { header:'#5658AC', rows:[['#5658AC','#7A80C5'],['#3D3D8E','#A0A8D5'],['#7479AC','#52578A'],['#32355B','#D1D4E7'],['#A6AABF','#52576D']] },
+  { header:'#8A468F', rows:[['#8A468F','#A072B2'],['#633371','#B89EBF'],['#8D7DA3','#705583'],['#3E2F4D','#DAD2E1'],['#AFABB8','#5D5A6C']] },
+];
+
+let activeFamilyIdx = -1;
+
+function findFamilyForHex(hex){
+  const h = hex.toLowerCase();
+  for(let g=0; g<PALETTE_GROUPS.length; g++){
+    const grp = PALETTE_GROUPS[g];
+    if(grp.header.toLowerCase() === h) return {groupIdx:g, cellHex:null};
+    for(const row of grp.rows){
+      for(const c of row){
+        if(c && c.toLowerCase() === h) return {groupIdx:g, cellHex:h};
+      }
+    }
+  }
+  // not found in this hand-entered set (different palette) — fall back to nearest header hue
+  const rgb = hexToRgb(hex);
+  let best = 0, bestD = Infinity;
+  PALETTE_GROUPS.forEach((grp,i)=>{
+    const hrgb = hexToRgb(grp.header);
+    const d = colorDist(rgb[0],rgb[1],rgb[2], hrgb[0],hrgb[1],hrgb[2]);
+    if(d<bestD){ bestD=d; best=i; }
+  });
+  return {groupIdx:best, cellHex:null};
+}
+
+function buildFamilyHeaders(){
+  familyHeadersEl.innerHTML = '';
+  PALETTE_GROUPS.forEach((grp,i)=>{
+    const sw = document.createElement('div');
+    sw.className = 'fh-swatch';
+    sw.style.background = grp.header;
+    sw.title = grp.header;
+    sw.addEventListener('click', ()=> showFamily(i, null));
+    familyHeadersEl.appendChild(sw);
+  });
+}
+
+function showFamily(groupIdx, matchHex){
+  activeFamilyIdx = groupIdx;
+  familyEmptyEl.style.display = 'none';
+  familyGridEl.style.display = 'grid';
+  [...familyHeadersEl.children].forEach((el,i)=> el.classList.toggle('active', i===groupIdx));
+  const grp = PALETTE_GROUPS[groupIdx];
+  familyGridEl.innerHTML = '';
+  for(let r=0;r<5;r++){
+    const row = grp.rows[r] || [null,null];
+    for(let c=0;c<2;c++){
+      const hex = row[c];
+      const cell = document.createElement('div');
+      if(hex){
+        cell.className = 'fg-cell';
+        cell.style.background = hex;
+        cell.title = hex;
+        if(matchHex && hex.toLowerCase()===matchHex) cell.classList.add('match');
+      } else {
+        cell.className = 'fg-cell empty';
+      }
+      familyGridEl.appendChild(cell);
+    }
+  }
+  familyHeadersEl.children[groupIdx]?.scrollIntoView({inline:'center', behavior:'smooth', block:'nearest'});
+}
+
+function onColorPicked(hex){
+  const {groupIdx, cellHex} = findFamilyForHex(hex);
+  showFamily(groupIdx, cellHex);
+}
+
 const BAYER4 = [
   [0,8,2,10],
   [12,4,14,6],
@@ -387,6 +623,7 @@ const BAYER4 = [
 ];
 
 let sourceImg = null;
+
 let gridW = 32, gridH = 32;
 let indexGrid = null; // Int16Array of palette indices, length gridW*gridH
 let paintedSet = new Set(); // "x,y" marked done
@@ -419,13 +656,93 @@ const stepNavEl = document.getElementById('stepNav');
 const stepLabelEl = document.getElementById('stepLabel');
 const prevStepBtn = document.getElementById('prevStep');
 const nextStepBtn = document.getElementById('nextStep');
+const presetSelect = document.getElementById('presetSelect');
+const presetNoteEl = document.getElementById('presetNote');
+const stepJumpEl = document.getElementById('stepJump');
+const jumpInput = document.getElementById('jumpInput');
+const jumpBtn = document.getElementById('jumpBtn');
+const familyHeadersEl = document.getElementById('familyHeaders');
+const familyGridEl = document.getElementById('familyGrid');
+const familyEmptyEl = document.getElementById('familyEmpty');
+
+buildFamilyHeaders();
+familyGridEl.style.display = 'none';
+
+function setStepControlsVisible(visible){
+  stepNavEl.style.display = visible ? 'flex' : 'none';
+  stepJumpEl.style.display = visible ? 'flex' : 'none';
+}
+function updateJumpBounds(){
+  if(viewMode==='color'){ jumpInput.max = legendCounts.length; jumpInput.placeholder = `1-${legendCounts.length}`; }
+  else if(viewMode==='block'){ jumpInput.max = totalBlocks; jumpInput.placeholder = `1-${totalBlocks}`; }
+}
 
 
-document.querySelectorAll('.presets button').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    canvasWInp.value = btn.dataset.w;
-    canvasHInp.value = btn.dataset.h;
+// Community-counted painting canvas sizes (r/heartopia "Canvas pixel sizes (the basics)").
+// Precision letters: A=1x1 (lowest), B=2x2, C=3x3, D=4x4 (highest).
+// Portrait (9:16 / 3:4) rows are the landscape values transposed (W/H swapped) —
+// the thread flagged the 9:16 "D" value as disputed (140x84 transposed vs. a
+// reported fix of 150x84), so that one option is labeled accordingly.
+const CANVAS_PRESETS = [
+  { group:'16:9 landscape', items:[
+    {label:'A — 30×18',  w:30,  h:18},
+    {label:'B — 50×28',  w:50,  h:28},
+    {label:'C — 100×56', w:100, h:56},
+    {label:'D — 140×84', w:140, h:84},
+  ]},
+  { group:'9:16 portrait (transposed — thread disputes "D")', items:[
+    {label:'A — 18×30',  w:18,  h:30},
+    {label:'B — 28×50',  w:28,  h:50},
+    {label:'C — 56×100', w:56,  h:100},
+    {label:'D — 84×140 (thread also reports 84×150, unresolved — verify in-game)', w:84, h:140},
+  ]},
+  { group:'4:3 landscape', items:[
+    {label:'A — 30×24',   w:30,  h:24},
+    {label:'B — 50×38',   w:50,  h:38},
+    {label:'C — 100×76',  w:100, h:76},
+    {label:'D — 150×114', w:150, h:114},
+  ]},
+  { group:'3:4 portrait (transposed)', items:[
+    {label:'A — 24×30',   w:24,  h:30},
+    {label:'B — 38×50',   w:38,  h:50},
+    {label:'C — 76×100',  w:76,  h:100},
+    {label:'D — 114×150', w:114, h:150},
+  ]},
+  { group:'1:1 square', items:[
+    {label:'A — 30×30',   w:30,  h:30},
+    {label:'B — 50×50',   w:50,  h:50},
+    {label:'C — 100×100', w:100, h:100},
+    {label:'D — 150×150', w:150, h:150},
+  ]},
+  { group:'Clothing (single community report, not the full set)', items:[
+    {label:'Long-sleeve t-shirt — 80×88', w:80, h:88},
+  ]},
+];
+
+(function buildPresetSelect(){
+  CANVAS_PRESETS.forEach(({group, items})=>{
+    const og = document.createElement('optgroup');
+    og.label = group;
+    items.forEach(item=>{
+      const opt = document.createElement('option');
+      opt.value = `${item.w}x${item.h}`;
+      opt.textContent = item.label;
+      opt.dataset.w = item.w;
+      opt.dataset.h = item.h;
+      og.appendChild(opt);
+    });
+    presetSelect.appendChild(og);
   });
+})();
+
+presetSelect.addEventListener('change', ()=>{
+  const opt = presetSelect.selectedOptions[0];
+  if(!opt) return;
+  canvasWInp.value = opt.dataset.w;
+  canvasHInp.value = opt.dataset.h;
+  presetNoteEl.textContent = opt.textContent.includes('disputed') || opt.textContent.includes('unresolved')
+    ? '⚠ This exact size is contested in the source thread — double-check against the in-game canvas before painting a large image.'
+    : 'From community pixel-counting — furniture and most clothing sizes beyond the long-sleeve shirt aren\u2019t documented yet, type them in manually if you have them.';
 });
 
 strengthInp.addEventListener('input', ()=> strengthVal.textContent = strengthInp.value);
@@ -522,7 +839,7 @@ function generate(){
   colorStepIdx = 0;
   viewMode = 'all';
   viewModeSel.value = 'all';
-  stepNavEl.style.display = 'none';
+  setStepControlsVisible(false);
   buildLegend();
   downloadBtn.disabled = false;
   exportPlanBtn.disabled = false;
@@ -551,17 +868,18 @@ function buildLegend(){
         viewMode = 'all';
         focusedIndex = -1;
         viewModeSel.value = 'all';
-        stepNavEl.style.display = 'none';
+        setStepControlsVisible(false);
       } else {
         viewMode = 'color';
         focusedIndex = pi;
         colorStepIdx = legendCounts.findIndex(([p])=>p===pi);
         viewModeSel.value = 'color';
-        stepNavEl.style.display = 'flex';
+        setStepControlsVisible(true);
       }
       updateLegendActive();
       updateStepLabel();
       updateStepStatus();
+      updateJumpBounds();
       draw();
     });
     legendEl.appendChild(div);
@@ -575,40 +893,72 @@ function updateLegendActive(){
     el.classList.toggle('active', parseInt(el.dataset.pi)===focusedIndex);
   });
   clearStepEl.style.display = focusedIndex>=0 ? 'block' : 'none';
+  if(focusedIndex>=0){
+    onColorPicked(PALETTE_HEX[focusedIndex]);
+  }
 }
 
 clearStepEl.addEventListener('click', ()=>{
   viewMode = 'all';
   focusedIndex = -1;
   viewModeSel.value = 'all';
-  stepNavEl.style.display = 'none';
+  setStepControlsVisible(false);
   updateLegendActive();
   updateStepStatus();
   draw();
 });
 
 viewModeSel.addEventListener('change', ()=>{
-  viewMode = viewModeSel.value;
+  const chosen = viewModeSel.value;
+  viewMode = chosen;
   if(viewMode === 'color'){
     colorStepIdx = 0;
     focusedIndex = legendCounts.length ? legendCounts[0][0] : -1;
-    stepNavEl.style.display = 'flex';
+    setStepControlsVisible(true);
   } else if(viewMode === 'block'){
     blockStepIdx = 0;
     focusedIndex = -1;
-    stepNavEl.style.display = 'flex';
+    setStepControlsVisible(true);
   } else {
     focusedIndex = -1;
-    stepNavEl.style.display = 'none';
+    setStepControlsVisible(false);
   }
   updateLegendActive();
   updateStepLabel();
   updateStepStatus();
+  updateJumpBounds();
   draw();
 });
 
 prevStepBtn.addEventListener('click', ()=> stepBy(-1));
 nextStepBtn.addEventListener('click', ()=> stepBy(1));
+
+function jumpTo(oneIndexed){
+  const idx = oneIndexed - 1;
+  if(viewMode === 'color'){
+    if(!legendCounts.length) return;
+    colorStepIdx = Math.max(0, Math.min(legendCounts.length-1, idx));
+    focusedIndex = legendCounts[colorStepIdx][0];
+    updateLegendActive();
+  } else if(viewMode === 'block'){
+    if(!totalBlocks) return;
+    blockStepIdx = Math.max(0, Math.min(totalBlocks-1, idx));
+  } else {
+    return;
+  }
+  updateStepLabel();
+  updateStepStatus();
+  draw();
+}
+
+jumpBtn.addEventListener('click', ()=>{
+  const v = parseInt(jumpInput.value);
+  if(!v || v<1) return;
+  jumpTo(v);
+});
+jumpInput.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){ jumpBtn.click(); }
+});
 
 function stepBy(dir){
   if(viewMode === 'color'){
@@ -721,7 +1071,6 @@ function draw(){
   // highlight current block boundary
   if(viewMode==='block' && totalBlocks){
     const b = currentBlockBounds();
-    ctx.strokeStyle = 'var(--accent)';
     ctx.strokeStyle = '#cf354d';
     ctx.lineWidth = Math.max(2,cell*0.15);
     ctx.strokeRect(b.x0*cell, b.y0*cell, (b.x1-b.x0)*cell, (b.y1-b.y0)*cell);
