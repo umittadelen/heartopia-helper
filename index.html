@@ -6,20 +6,26 @@
 <title>Brushstroke Guide</title>
 <style>
   :root{
-    --bg:#f5e4ce;
-    --panel:#fff8ef;
-    --ink:#432e4b;
-    --accent:#cf354d;
-    --accent2:#058781;
-    --line:#d8c9b0;
-    --muted:#8b7d76;
+    --bg:#110d18;
+    --bg2:#171224;
+    --panel:#1d1829;
+    --panel2:#241f34;
+    --ink:#f4ebff;
+    --accent:#ff6b86;
+    --accent2:#4fd4c6;
+    --line:#3a3450;
+    --muted:#aea3bf;
+    --surface:#29223b;
   }
   *{box-sizing:border-box;}
   html{ touch-action:manipulation; } /* stops iOS double-tap-to-zoom site-wide */
   body{
     margin:0;
     font-family:'Trebuchet MS', 'Segoe UI', sans-serif;
-    background:var(--bg);
+    background:
+      radial-gradient(circle at top center, rgba(255,107,134,0.14), transparent 30%),
+      radial-gradient(circle at 85% 0%, rgba(79,212,198,0.12), transparent 22%),
+      linear-gradient(180deg, var(--bg2), var(--bg));
     color:var(--ink);
     min-height:100vh;
     touch-action:manipulation;
@@ -50,8 +56,9 @@
   .panel{
     background:var(--panel);
     border:1px solid var(--line);
-    border-radius:10px;
+    border-radius:14px;
     padding:14px;
+    box-shadow:0 14px 30px rgba(0,0,0,0.28);
   }
   .controls{
     flex:0 0 280px;
@@ -79,6 +86,8 @@
     border:1px solid var(--line);
     border-radius:6px;
     font-size:0.85rem;
+    background:var(--panel2);
+    color:var(--ink);
   }
   select{
     width:100%;
@@ -86,7 +95,8 @@
     border:1px solid var(--line);
     border-radius:6px;
     font-size:0.85rem;
-    background:#fff;
+    background:var(--panel2);
+    color:var(--ink);
   }
   .row{display:flex;gap:8px;}
   .row > div{flex:1;}
@@ -95,7 +105,8 @@
     flex:1 1 auto;
     padding:6px 4px;
     border:1px solid var(--line);
-    background:#fff;
+    background:var(--panel2);
+    color:var(--ink);
     border-radius:6px;
     cursor:pointer;
     font-size:0.75rem;
@@ -114,7 +125,7 @@
   button.primary:hover{opacity:0.9;}
   button.secondary{
     padding:8px;
-    background:#fff;
+    background:var(--panel2);
     color:var(--ink);
     border:1px solid var(--line);
     border-radius:8px;
@@ -139,7 +150,9 @@
     max-height:72vh;
     border:1px solid var(--line);
     border-radius:8px;
-    background:repeating-conic-gradient(#eee 0% 25%, #f7f7f7 0% 50%) 0 0/16px 16px;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255,255,255,0.05), transparent 45%),
+      repeating-conic-gradient(#201a2c 0% 25%, #171221 0% 50%) 0 0/16px 16px;
     overscroll-behavior:contain;
   }
   canvas#out{
@@ -168,12 +181,12 @@
     cursor:pointer;
     font-size:0.78rem;
   }
-  .legend-item:hover{background:#eee0cd;}
-  .legend-item.active{background:#ecd6c2;outline:1px solid var(--accent);}
+  .legend-item:hover{background:rgba(255,255,255,0.05);}
+  .legend-item.active{background:rgba(255,107,134,0.16);outline:1px solid rgba(255,107,134,0.7);}
   .swatch{
     width:18px;height:18px;
     border-radius:4px;
-    border:1px solid rgba(0,0,0,0.2);
+    border:1px solid rgba(255,255,255,0.18);
     flex:0 0 auto;
   }
   .legend-item .cnt{margin-left:auto;color:var(--muted);}
@@ -191,24 +204,42 @@
   }
   .family-headers{
     display:flex;
-    gap:6px;
+    gap:0px;
     overflow-x:auto;
     scroll-snap-type:x proximity;
-    padding:2px 2px 8px;
+    padding:6px 0;
     -webkit-overflow-scrolling:touch;
   }
   .family-headers .fh-swatch{
     flex:0 0 34px;
-    width:34px;height:34px;
-    border-radius:8px;
+    width:34px;height:40px;
+    border-radius:0px;
     border:2px solid transparent;
     cursor:pointer;
     scroll-snap-align:start;
+    transition:transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
   }
   .family-headers .fh-swatch.active{
-    border-color:var(--ink);
-    transform:scale(1.08);
+    border-color:#f7f0ff;
+    transform:scale(1.18);
+    box-shadow:none;
   }
+
+  #familyHeaders::-webkit-scrollbar{
+    height:10px;
+  }
+
+  #familyHeaders::-webkit-scrollbar-track {
+    border:1px solid var(--line);
+    background-color: var(--panel2);
+    border-radius: 3px;
+  }
+
+  #familyHeaders::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 3px;
+  }
+
   .family-grid{
     display:grid;
     grid-template-columns:repeat(2, 1fr);
@@ -216,18 +247,25 @@
     gap:6px;
   }
   .family-grid .fg-cell{
-    aspect-ratio:1.6;
+    aspect-ratio:1;
     border-radius:6px;
-    border:1px solid rgba(0,0,0,0.15);
+    border:0px;
     position:relative;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
   }
-  .family-grid .fg-cell.empty{
-    background:repeating-linear-gradient(45deg,#eee,#eee 4px,#f7f7f7 4px,#f7f7f7 8px);
-    border-style:dashed;
+  .family-grid .fg-cell img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+    pointer-events:none;
   }
   .family-grid .fg-cell.match{
-    outline:2px solid var(--accent);
-    outline-offset:2px;
+    outline:none;
   }
   #familyEmpty{padding:10px 0;}
 
@@ -248,7 +286,8 @@
     flex:0 0 auto;
     padding:8px 10px;
     border:1px solid var(--line);
-    background:#fff;
+    background:var(--panel2);
+    color:var(--ink);
     border-radius:6px;
     cursor:pointer;
     font-size:0.85rem;
@@ -273,12 +312,15 @@
     border:1px solid var(--line);
     border-radius:6px;
     font-size:0.85rem;
+    background:var(--panel2);
+    color:var(--ink);
   }
   .step-jump button{
     flex:1;
     padding:8px;
     border:1px solid var(--line);
-    background:#fff;
+    background:var(--panel2);
+    color:var(--ink);
     border-radius:6px;
     cursor:pointer;
     font-size:0.82rem;
@@ -478,41 +520,79 @@
 
 <footer>Palette is Heartopia's in-game colors, pasted in by hand. Click a color in the list (or use step-through mode) to focus it, click active pixels on the canvas to mark them painted.</footer>
 
-<script>
-const PALETTE_HEX = [
-"#051616","#414545","#808282","#bebfbf","#feffff",
-"#cf354d","#ee6f72","#a6263d","#f5aca6","#c98483",
-"#a35d5e","#69313b","#e7d5d5","#c0acab","#755e5e",
-"#e95e2b","#f98358","#ab4226","#feba9f","#d9937c",
-"#af6c58","#753b31","#e9d5d0","#c1aca6","#755e59",
-"#f49e16","#feae3b","#b16f16","#fece92","#daa76d",
-"#b3814b","#795126","#f5e4ce","#cdbca9","#806f5e",
-"#edca16","#f9d838","#b39416","#fae791","#d3be6f",
-"#ab954b","#756326","#eee7c7","#c6bfa2","#787259",
-"#a8bc16","#b6c931","#758616","#d8df93","#adb76d",
-"#85914b","#535e2b","#e6e9c7","#bcc2a3","#6e745d",
-"#05a25d","#41b97b","#057447","#9cdaad","#76b28b",
-"#4f8969","#245640","#c3e0cc","#9db7a6","#53695d",
-"#058781","#05aba0","#056966","#7ecdc2","#55a49c",
-"#2b7e78","#054b4b","#bee0da","#98b7b2","#4e6b66",
-"#05729c","#0599ba","#055878","#79bbca","#5193a5",
-"#246d7f","#05495b","#c6dde2","#9eb5ba","#4f676f",
-"#055ea6","#2b83c1","#054782","#83a8c9","#5d80a1",
-"#365b7f","#193b56","#c1cdd5","#9ba6b0","#4c5967",
-"#534da1","#7577bd","#3e387e","#a2a0c7","#787aa1",
-"#55567e","#333555","#c9cad5","#a2a3b0","#565869",
-"#813d8b","#a167a9","#602b6c","#b89bb9","#907395",
-"#6c4d73","#432e4b","#cfc9d1","#aba1ac","#605665",
-"#ad356f","#cf6b8f","#862658","#d9a1b4","#b47a8c",
-"#8b5367","#60354b","#e4d5da","#bcadb1","#725e66"
-];
+<script type="module">
+import colorLoader from './colors.js';
+
+let PALETTE_HEX = [];
+let PALETTE_GROUPS = [];
+let PALETTE = [];
+
+function normalizeHex(value){
+  if(!value) return null;
+  const raw = value.trim();
+  const m = raw.match(/^#?([0-9a-fA-F]{6})$/);
+  return m ? `#${m[1].toUpperCase()}` : null;
+}
+
+function buildRowsFromColors(colors){
+  const rows = [];
+  for(let i=0;i<colors.length;i+=2){
+    rows.push([colors[i] || null, colors[i+1] || null]);
+  }
+  return rows;
+}
+
+function buildGroupsFromLoaderData(loaderData){
+  return Object.keys(loaderData)
+    .sort((a,b)=> parseInt(a.replace(/\D/g,''),10) - parseInt(b.replace(/\D/g,''),10))
+    .map((key)=>{
+      const group = loaderData[key];
+      const allColors = (group.colors || [])
+        .map(normalizeHex)
+        .filter(Boolean);
+      const main = normalizeHex(group.mainColor) || allColors[0] || '#FFFFFF';
+      return {
+        header: main,
+        rows: buildRowsFromColors(allColors),
+      };
+    });
+}
+
+function rebuildPaletteFromGroups(){
+  const seen = new Set();
+  const merged = [];
+  for(const group of PALETTE_GROUPS){
+    const add = (hex)=>{
+      if(!hex || seen.has(hex)) return;
+      seen.add(hex);
+      merged.push(hex);
+    };
+    add(normalizeHex(group.header));
+    for(const row of group.rows){
+      add(normalizeHex(row[0]));
+      add(normalizeHex(row[1]));
+    }
+  }
+  PALETTE_HEX = merged;
+  PALETTE = PALETTE_HEX.map(hexToRgb);
+}
+
+async function initializeColorData(){
+  const data = await colorLoader.initialize();
+  if(!data){
+    throw new Error('Failed to initialize colors from color.svg');
+  }
+  PALETTE_GROUPS = buildGroupsFromLoaderData(data);
+  rebuildPaletteFromGroups();
+  if(!PALETTE_HEX.length || !PALETTE_GROUPS.length){
+    throw new Error('No usable colors found in color.svg');
+  }
+}
 
 function hexToRgb(h){
   h = h.replace('#','');
   return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
 }
-const PALETTE = PALETTE_HEX.map(hexToRgb);
-
 // weighted "redmean" perceptual distance
 function colorDist(r1,g1,b1,r2,g2,b2){
   const rmean = (r1+r2)/2;
@@ -533,20 +613,57 @@ function nearestPaletteIndex(r,g,b){
 // Hue-family breakdown pasted in by hand: 12 base hues, each with its
 // shade group (up to 5 rows x 2 cols). Independent of PALETTE_HEX above —
 // this is a browsing/reference aid, not what the image gets quantized to.
-const PALETTE_GROUPS = [
-  { header:'#1B1613', rows:[['#060B0A','#3D4241'],['#7F8483','#B7B9B8'],['#FFFFFF',null]] },
-  { header:'#D36466', rows:[['#D36466','#EF7E7A'],['#AE2A3A','#F1B4B1'],['#C18B86','#A16161'],['#65222D','#EFE2E2'],['#CBC1C1','#7D6E6E']] },
-  { header:'#D77B51', rows:[['#D77B51','#F99A5F'],['#B45420','#FAC89E'],['#C89D78','#A6744F'],['#73361D','#F3E3D4'],['#CDBFB2','#7E7265']] },
-  { header:'#DA9C3C', rows:[['#DA9C3C','#FDBF4F'],['#B47717','#FED696'],['#CDAA6D','#AE8A48'],['#754F1C','#F5EAD2'],['#CFC6B1','#7D7762']] },
-  { header:'#DBBF33', rows:[['#DBBF33','#F1DE59'],['#B7A31D','#F5E99B'],['#C7BC70','#B1A84D'],['#726520','#F0F0CF'],['#CFCCAF','#797961']] },
-  { header:'#A2B630', rows:[['#A2B630','#B7D15B'],['#7D981D','#D2E495'],['#A8C274','#809C4F'],['#4C6022','#E7F0D0'],['#C9D6AF','#6B7960']] },
-  { header:'#0F9E52', rows:[['#0F9E52','#51B377'],['#0E8043','#9DD8B0'],['#75B48E','#528A69'],['#1D5435','#CFE9D9'],['#ACCDB9','#536E5F']] },
-  { header:'#0E8982', rows:[['#0E8982','#19B4A7'],['#0E6D67','#8ACBC4'],['#5EA59E','#377D78'],['#0A4D49','#C8EAE7'],['#A4C3C1','#4F6D6A']] },
-  { header:'#0D7EA9', rows:[['#0D7EA9','#1BA4C8'],['#116389','#87C3D9'],['#5D9CB6','#35768D'],['#0D475A','#C7E3EB'],['#A2BDC7','#4F6772']] },
-  { header:'#0E66B1', rows:[['#0E66B1','#408FCD'],['#0A4D8F','#8CB5DA'],['#628AB6','#3E6794'],['#1C3959','#C9DBE7'],['#A1B2C2','#4A5B70']] },
-  { header:'#5658AC', rows:[['#5658AC','#7A80C5'],['#3D3D8E','#A0A8D5'],['#7479AC','#52578A'],['#32355B','#D1D4E7'],['#A6AABF','#52576D']] },
-  { header:'#8A468F', rows:[['#8A468F','#A072B2'],['#633371','#B89EBF'],['#8D7DA3','#705583'],['#3E2F4D','#DAD2E1'],['#AFABB8','#5D5A6C']] },
-];
+
+function buildFamilyIconSvg(fillHex, selected){
+  const selectFill = selected ? '#fff' : 'transparent';
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="color_icon" width="71.277" height="79.332" viewBox="0 0 71.277 79.332">
+      <defs>
+        <clipPath id="svg-family-clip-path">
+          <rect width="71.277" height="79.332" fill="none"></rect>
+        </clipPath>
+        <clipPath id="svg-family-clip-path-3">
+          <rect width="51.902" height="20.908" transform="translate(9.613 54.309)" fill="none"></rect>
+        </clipPath>
+        <clipPath id="svg-family-clip-path-4">
+          <rect width="56.733" height="28.092" transform="translate(4.847 42.028)" fill="none"></rect>
+        </clipPath>
+        <clipPath id="svg-family-clip-path-5">
+          <rect width="7.056" height="16.081" transform="translate(59.465 29.772)" fill="none"></rect>
+        </clipPath>
+      </defs>
+      <g clip-path="url(#svg-family-clip-path)">
+        <g>
+          <g clip-path="url(#svg-family-clip-path)">
+            <path id="svg-family-color_icon_select" d="M30.287,78.261a19.339,19.339,0,0,1-18.5-3.15A18.331,18.331,0,0,1,5.138,58.486c-6.806-7.6-6.838-18.018-.165-25.716C2.753,23.656,6.71,13.676,15.741,10.308c9.654-3.6,19.076-6.772,29-9.785,6-1.822,12.3,1.411,16.437,5.088,4.584,4.071,6.541,9.683,5.689,16.379,6.218,7.835,5.781,18.118-.811,25.671,2.256,9.291-2.128,18.629-10.993,22.177-7.995,3.2-16.079,5.545-24.777,8.423M6.058,42.028c-3.468,11.216,1.363,9.021,3.9,17.38-1.2,4.544.875,8.956,4.372,12.019,3.513,3.077,8.6,4.805,13.513,3.146l25.169-8.508a12.533,12.533,0,0,0,8.5-11.757,7.428,7.428,0,0,0-.126-2.717c-.444-1.259.912-3.567-1.121-3.959a10.923,10.923,0,0,0,.291-1.78c5.9-2.669,7.248-10.426,4.813-16.081-.811-1.885-2.5-4.587-3.046-6.638.823-5.945-.4-9.9-4.57-13.538-9.442-8.217-20.283-.836-31.744,2.689-4.5,1.385-8.922,2.2-12.6,5.211C8.192,21.773,8.6,28.692,9.857,34.659a20.448,20.448,0,0,0-3.8,7.369" fill="${selectFill}"></path>
+            <path d="M65.37,29.772c-.812-1.885-2.5-4.587-3.047-6.638.824-5.946-.4-9.906-4.569-13.538C48.312,1.379,37.471,8.76,26.01,12.285c-4.5,1.385-8.923,2.2-12.6,5.211C8.192,21.774,8.6,28.693,9.856,34.66a20.48,20.48,0,0,0-3.8,7.369c-3.468,11.216,1.364,9.021,3.9,17.38-1.2,4.544.875,8.956,4.373,12.019s8.6,4.805,13.512,3.146l25.169-8.508a12.534,12.534,0,0,0,8.5-11.757,7.448,7.448,0,0,0-.125-2.717c-1.411.362-.736-.143,0,0-.445-1.259.911-3.567-1.122-3.96a10.894,10.894,0,0,0,.291-1.779c5.9-2.669,7.248-10.426,4.814-16.081" fill="${fillHex}"></path>
+            <g opacity="0.3">
+              <g>
+                <g clip-path="url(#svg-family-clip-path-3)">
+                  <path d="M61.512,54.309a12.534,12.534,0,0,1-8.5,11.757L27.839,74.574c-4.908,1.659-10-.069-13.513-3.146-3.5-3.063-5.571-7.475-4.372-12.019,2.526,8.331,10.84,12.7,19.513,9.829l21.649-7.173c7.573-2.509,7.246-7.457,10.4-7.756" fill="#1a1311"></path>
+                </g>
+              </g>
+            </g>
+            <g opacity="0.15">
+              <g>
+                <g clip-path="url(#svg-family-clip-path-4)">
+                  <path d="M60.265,47.632c2.033.392.677,2.7,1.122,3.959-.736-.143-1.411.362,0,0a7.454,7.454,0,0,1,.125,2.718c-3.15.3-2.823,5.246-10.4,7.756L29.467,69.238c-8.673,2.873-16.987-1.5-19.513-9.83-2.534-8.358-7.365-6.163-3.9-17.38,8.967,12.409,3.093,15.861,9.59,22.227,7.543,7.391,19.484.457,31.059-3.392,11.783-3.919,10.174-5.291,13.559-13.231" fill="#1a1311"></path>
+                </g>
+              </g>
+            </g>
+            <g opacity="0.15">
+              <g>
+                <g clip-path="url(#svg-family-clip-path-5)">
+                  <path d="M60.556,45.853c-3.7-5.961,3.06-6.827,4.814-16.082,2.434,5.656,1.09,13.413-4.814,16.082" fill="#1a1311"></path>
+                </g>
+              </g>
+            </g>
+            <path d="M61.387,51.591c-.705.181-.889.145-.805.082a1.291,1.291,0,0,1,.805-.082" fill="#c24d53"></path>
+          </g>
+        </g>
+      </g>
+    </svg>`;
+}
 
 let activeFamilyIdx = -1;
 
@@ -554,7 +671,7 @@ function findFamilyForHex(hex){
   const h = hex.toLowerCase();
   for(let g=0; g<PALETTE_GROUPS.length; g++){
     const grp = PALETTE_GROUPS[g];
-    if(grp.header.toLowerCase() === h) return {groupIdx:g, cellHex:null};
+    if(grp.header.toLowerCase() === h) return {groupIdx:g, cellHex:grp.header.toLowerCase()};
     for(const row of grp.rows){
       for(const c of row){
         if(c && c.toLowerCase() === h) return {groupIdx:g, cellHex:h};
@@ -569,7 +686,23 @@ function findFamilyForHex(hex){
     const d = colorDist(rgb[0],rgb[1],rgb[2], hrgb[0],hrgb[1],hrgb[2]);
     if(d<bestD){ bestD=d; best=i; }
   });
-  return {groupIdx:best, cellHex:null};
+  return {groupIdx:best, cellHex:findClosestCellInGroup(hex, best)};
+}
+
+function findClosestCellInGroup(hex, groupIdx){
+  const target = hexToRgb(hex);
+  const grp = PALETTE_GROUPS[groupIdx];
+  let bestHex = null;
+  let bestD = Infinity;
+  for(const row of grp.rows){
+    for(const c of row){
+      if(!c) continue;
+      const rgb = hexToRgb(c);
+      const d = colorDist(target[0], target[1], target[2], rgb[0], rgb[1], rgb[2]);
+      if(d < bestD){ bestD = d; bestHex = c.toLowerCase(); }
+    }
+  }
+  return bestHex;
 }
 
 function buildFamilyHeaders(){
@@ -587,6 +720,7 @@ function buildFamilyHeaders(){
 function showFamily(groupIdx, matchHex){
   activeFamilyIdx = groupIdx;
   familyEmptyEl.style.display = 'none';
+  familyGridEl.removeAttribute('style');
   familyGridEl.style.display = 'grid';
   [...familyHeadersEl.children].forEach((el,i)=> el.classList.toggle('active', i===groupIdx));
   const grp = PALETTE_GROUPS[groupIdx];
@@ -598,9 +732,11 @@ function showFamily(groupIdx, matchHex){
       const cell = document.createElement('div');
       if(hex){
         cell.className = 'fg-cell';
-        cell.style.background = hex;
         cell.title = hex;
-        if(matchHex && hex.toLowerCase()===matchHex) cell.classList.add('match');
+        const img = document.createElement('img');
+        img.src = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(buildFamilyIconSvg(hex, matchHex && hex.toLowerCase()===matchHex))}`;
+        img.alt = hex;
+        cell.appendChild(img);
       } else {
         cell.className = 'fg-cell empty';
       }
@@ -665,6 +801,7 @@ const familyHeadersEl = document.getElementById('familyHeaders');
 const familyGridEl = document.getElementById('familyGrid');
 const familyEmptyEl = document.getElementById('familyEmpty');
 
+await initializeColorData();
 buildFamilyHeaders();
 familyGridEl.style.display = 'none';
 
@@ -1091,6 +1228,19 @@ outCanvas.addEventListener('click', (e)=>{
   if(paintedSet.has(key)) paintedSet.delete(key); else paintedSet.add(key);
   updateStepStatus();
   draw();
+});
+
+outCanvas.addEventListener('contextmenu', (e)=>{
+  if(!indexGrid) return;
+  e.preventDefault();
+  const rect = outCanvas.getBoundingClientRect();
+  const cell = parseInt(zoomInp.value);
+  const scaleX = outCanvas.width/rect.width, scaleY = outCanvas.height/rect.height;
+  const px = (e.clientX-rect.left)*scaleX;
+  const py = (e.clientY-rect.top)*scaleY;
+  const x = Math.floor(px/cell), y = Math.floor(py/cell);
+  if(x<0||x>=gridW||y<0||y>=gridH) return;
+  onColorPicked(PALETTE_HEX[indexGrid[y*gridW+x]]);
 });
 
 downloadBtn.addEventListener('click', ()=>{
