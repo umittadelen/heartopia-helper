@@ -8,6 +8,9 @@
 </head>
 <body>
 
+<!-- Silent audio for Media Session API to enable media controls -->
+<audio id="mediaPlayer" style="display:none;" loop></audio>
+
 <header>
   <h1>Heartopia Drawing Helper</h1>
   <p>Convert your photos into pixel guides for Heartopia, perfectly matched to the in-game palette. All processing happens on your device.</p>
@@ -430,6 +433,53 @@ await initializeColorData();
 buildFamilyHeaders();
 showFamily(0, null);
 
+// Initialize silent audio for Media Session API
+function initMediaSession(){
+  const mediaPlayer = document.getElementById('mediaPlayer');
+  if(!mediaPlayer) return;
+  
+  // Use a minimal silent WAV file (1 second of silence, 44100 Hz)
+  const silentWav = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAAA=';
+  mediaPlayer.src = silentWav;
+  mediaPlayer.volume = 0;
+  mediaPlayer.play().catch(() => {
+    // Autoplay might be blocked; that's OK
+  });
+  
+  // Set up media session metadata
+  if('mediaSession' in navigator){
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: 'Heartopia Drawing Helper',
+      artist: 'Drawing Guide',
+      artwork: [{
+        src: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"%3E%3Crect fill="%23ff6b86" width="128" height="128"/%3E%3C/svg%3E',
+        sizes: '128x128',
+        type: 'image/svg+xml'
+      }]
+    });
+    
+    navigator.mediaSession.playbackState = 'playing';
+  }
+}
+
+initMediaSession();
+
+// Ensure media player keeps running for media session
+const mediaPlayer = document.getElementById('mediaPlayer');
+if(mediaPlayer){
+  mediaPlayer.addEventListener('ended', () => {
+    mediaPlayer.currentTime = 0;
+    mediaPlayer.play().catch(() => {});
+  });
+  
+  // Restart if stopped
+  setInterval(() => {
+    if(mediaPlayer.paused){
+      mediaPlayer.play().catch(() => {});
+    }
+  }, 5000);
+}
+
 function setStepControlsVisible(visible){
   stepNavEl.style.display = visible ? 'flex' : 'none';
   stepJumpEl.style.display = visible ? 'flex' : 'none';
@@ -511,7 +561,10 @@ strengthInp.addEventListener('input', ()=> strengthVal.textContent = strengthInp
 strengthVal.textContent = strengthInp.value;
 // Update zoom info display
 function updateZoomInfo(){
-  const hint = window.innerWidth > 1200 ? '(Scroll to zoom, +/- keys, drag to pan, Arrow keys)' : '(Scroll, +/-, drag, arrows)';
+  const isMobile = window.innerWidth <= 900;
+  let hint = isMobile 
+    ? '(Pinch to zoom, drag to pan)' 
+    : '(Scroll to zoom, +/- to zoom, drag to pan, Arrow keys to pan, <> or ,. to step)';
   zoomInfo.textContent = `Zoom: ${zoomLevel}px/cell ${hint}`;
 }
 
@@ -740,6 +793,12 @@ document.getElementById('showGrid').addEventListener('change', (e)=>{
 
 prevStepBtn.addEventListener('click', ()=> stepBy(-1));
 nextStepBtn.addEventListener('click', ()=> stepBy(1));
+
+// Media Session API - handle media control buttons (< and > keys)
+if('mediaSession' in navigator){
+  navigator.mediaSession.setActionHandler('previoustrack', ()=> stepBy(-1));
+  navigator.mediaSession.setActionHandler('nexttrack', ()=> stepBy(1));
+}
 
 function jumpTo(oneIndexed){
   const idx = oneIndexed - 1;
@@ -1061,6 +1120,7 @@ document.addEventListener('keydown', (e)=>{
   if(!indexGrid) return;
   const isZoomKey = e.key === '+' || e.key === '=' || e.key === '-';
   const isPanKey = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key);
+  const isStepKey = e.key === '<' || e.key === '>' || e.key === ',' || e.key === '.';
   
   if(isZoomKey){
     e.preventDefault();
@@ -1087,12 +1147,68 @@ document.addEventListener('keydown', (e)=>{
     if(e.key === 'ArrowDown') panY -= step;
     clampPan();
     scheduleRedraw();
+  } else if(isStepKey){
+    e.preventDefault();
+    // < or , goes to previous step, > or . goes to next step
+    const delta = e.key === '<' || e.key === ',' ? -1 : 1;
+    stepBy(delta);
   }
 });
 
-// Touch support (pinch zoom on mobile)
+// Touch support (pinch zoom and single-touch pan)
+let isTouchDragging = false;
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartPanX = 0;
+let touchStartPanY = 0;
+
+outCanvas.addEventListener('touchstart', (e)=>{
+  if(e.touches.length === 1){
+    // Single touch: prepare for pan
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = outCanvas.getBoundingClientRect();
+    touchStartX = touch.clientX - rect.left;
+    touchStartY = touch.clientY - rect.top;
+    touchStartPanX = panX;
+    touchStartPanY = panY;
+    isTouchDragging = false;
+    lastTouchDistance = 0;
+  } else if(e.touches.length === 2){
+    // Two fingers: prepare for pinch zoom
+    isTouchDragging = false;
+    const touch1 = e.touches[0];
+    const touch2 = e.touches[1];
+    const dx = touch2.clientX - touch1.clientX;
+    const dy = touch2.clientY - touch1.clientY;
+    lastTouchDistance = Math.sqrt(dx*dx + dy*dy);
+  }
+}, {passive: false});
+
 outCanvas.addEventListener('touchmove', (e)=>{
-  if(e.touches.length === 2){
+  if(e.touches.length === 1){
+    // Single touch: pan
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = outCanvas.getBoundingClientRect();
+    const currentX = touch.clientX - rect.left;
+    const currentY = touch.clientY - rect.top;
+    
+    const dx = Math.abs(currentX - touchStartX);
+    const dy = Math.abs(currentY - touchStartY);
+    
+    if(!isTouchDragging && (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD)){
+      isTouchDragging = true;
+    }
+    
+    if(isTouchDragging){
+      panX = touchStartPanX + (currentX - touchStartX);
+      panY = touchStartPanY + (currentY - touchStartY);
+      clampPan();
+      scheduleRedraw();
+    }
+  } else if(e.touches.length === 2){
+    // Two finger pinch zoom
     e.preventDefault();
     const touch1 = e.touches[0];
     const touch2 = e.touches[1];
@@ -1114,8 +1230,20 @@ outCanvas.addEventListener('touchmove', (e)=>{
   }
 }, {passive: false});
 
-outCanvas.addEventListener('touchend', ()=>{ lastTouchDistance = 0; });
-outCanvas.addEventListener('touchcancel', ()=>{ lastTouchDistance = 0; });
+outCanvas.addEventListener('touchend', (e)=>{
+  if(e.touches.length < 2){
+    lastTouchDistance = 0;
+  }
+  
+  if(e.touches.length === 0){
+    isTouchDragging = false;
+  }
+}, {passive: false});
+
+outCanvas.addEventListener('touchcancel', ()=>{ 
+  lastTouchDistance = 0; 
+  isTouchDragging = false;
+});
 
 downloadBtn.addEventListener('click', ()=>{
   const link = document.createElement('a');
